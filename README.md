@@ -85,7 +85,7 @@ If you encounter any issue, you may try to re-install after removing the virtual
 ### 💾 **Data Preparation**
 Following are our processed version of the Breaking Bad dataset. 
 
-**We've identified the Volume Constrained version uploaded to Google Drive is outdated, and we'll update it soon.**
+
 <table>
   <tr>
     <th>Dataset</th>
@@ -99,7 +99,7 @@ Following are our processed version of the Breaking Bad dataset.
   <tr>
     <td>Breaking Bad Volume Constrained</td>
     <td><a href="https://jdscript-my.sharepoint.com/:f:/g/personal/shared_jdscript_app/EqEvBJxkWcJOpLDqLTaYiQgBayhtJWEzwO7ftRUf6dMBMw?e=oREaca" target="_blank">OneDrive</a>
-    <a href="https://drive.google.com/file/d/1vhYZGHNfunI3K5vTi9RtMugkUKdHSn5f/view?usp=drive_link" target="_blank">Google Drive</a></td>
+    <a href="https://drive.google.com/file/d/1f2V4hu1YgkRgEatGnL_hBG4FKRYLWloe/view?usp=sharing" target="_blank">Google Drive</a></td>
   </tr>
   <tr>
     <td>Breaking Bad Other</td>
