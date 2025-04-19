@@ -83,7 +83,9 @@ to install the dependencies and activate the virtual environment. Please be note
 If you encounter any issue, you may try to re-install after removing the virtual environment at `.venv` and doing `uv clean` to remove the cache.
 
 ### 💾 **Data Preparation**
-We will soon provide the script to process the raw Breaking Bad dataset into our hdf5 format, right now, you can directly download our processed dataset from following links. Fractura dataset will be released soon.
+Following are our processed version of the Breaking Bad dataset. 
+
+**We've identified the Volume Constrained version uploaded to Google Drive is outdated, and we'll update it soon.**
 <table>
   <tr>
     <th>Dataset</th>
@@ -105,6 +107,23 @@ We will soon provide the script to process the raw Breaking Bad dataset into our
     <a href="https://drive.google.com/file/d/1XO2BTCTkn9c9JPk95vkZk48rdEVlyoDd/view?usp=drive_link" target="_blank">Google Drive</a></td>
   </tr>
 </table>
+
+You can also use the script in `scripts/process_breakingbad.py` to convert the Breaking Bad dataset into the hdf5 format. Please follow the instructions in Breaking Bad to decompress the data first.
+
+Our conversion script supposes that Breaking Bad dataset is organized in the following structure:
+```bash
+├── breaking_bad
+│   ├── artifact
+│   ├── everyday
+|       ├── BeerBottle
+|       ├── ...
+├── data_split
+│   ├── artifact.train.txt
+│   ├── artifact.val.txt
+│   ├── everyday.train.txt
+│   ├── everyday.val.txt
+```
+You can manually change the constants declared in the script to adapt to different saving locations and categories.
 
 ### 🎯 **Evaluation**
 We provide the evaluation script in `scripts/eval.sh`, which looks like this:
