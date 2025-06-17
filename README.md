@@ -112,18 +112,21 @@ You can also use the script in `scripts/process_breakingbad.py` to convert the B
 
 Our conversion script supposes that Breaking Bad dataset is organized in the following structure:
 ```bash
+.
 ├── breaking_bad
 │   ├── artifact
-│   ├── everyday
-|       ├── BeerBottle
-|       ├── ...
+│   └── everyday
+│       ├── BeerBottle
+│       └── ... 
 ├── data_split
 │   ├── artifact.train.txt
 │   ├── artifact.val.txt
 │   ├── everyday.train.txt
-│   ├── everyday.val.txt
+│   └── everyday.val.txt
 ```
 You can manually change the constants declared in the script to adapt to different saving locations and categories.
+
+To break custom objects, feel free to use [our modified Breaking Good code](https://github.com/kevintsq/fracture-modes).
 
 ### 🎯 **Evaluation**
 We provide the evaluation script in `scripts/eval.sh`, which looks like this:
