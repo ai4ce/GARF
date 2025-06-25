@@ -55,7 +55,6 @@
 
   <div align="center"></div>
 
-
 ## 🔊 News 
 - `2025/06/25`: GARF has been accepted to ICCV2025. Looking forward to seeing you in Hawaii🌺! 
 - `2025/03/25`: We release the <a href="https://ai4ce.github.io/GARF/" target="_blank">GARF</a>, which achieves state-of-the-art performance across a diverse range of synthetic and real-world benchmarks. Try our <a href="https://garf-demo.pages.dev/" target="_blank">demo</a> on your own data! 
@@ -76,24 +75,23 @@
 - [License](#license)
 - [Acknowledgement](#acknowledgement)
 
-
 ## 📄 Documentation
-
 
 ### ⏩ **Installation**
 We recommend using [uv](https://docs.astral.sh/uv/) to manage the dependencies. Follow the instructions [here](https://docs.astral.sh/uv/getting-started/installation/) to install uv. Then, simply run
+
 ```bash
 uv sync
 uv sync --extra post
 source ./venv/bin/activate
 ```
+
 to install the dependencies and activate the virtual environment. Please be noted that `flash-attn` requires CUDA 12.0 or above and `pytorch3d` may need GPU available when installing it, or it will compile with no GPU support.
 
 If you encounter any issue, you may try to re-install after removing the virtual environment at `.venv` and doing `uv clean` to remove the cache.
 
 ### 💾 **Data Preparation**
 Following are our processed version of the Breaking Bad dataset. 
-
 
 <table>
   <tr>
@@ -120,6 +118,7 @@ Following are our processed version of the Breaking Bad dataset.
 You can also use the script in `scripts/process_breakingbad.py` to convert the Breaking Bad dataset into the hdf5 format. Please follow the instructions in Breaking Bad to decompress the data first.
 
 Our conversion script supposes that Breaking Bad dataset is organized in the following structure:
+
 ```bash
 .
 ├── breaking_bad
@@ -133,12 +132,14 @@ Our conversion script supposes that Breaking Bad dataset is organized in the fol
 │   ├── everyday.train.txt
 │   └── everyday.val.txt
 ```
+
 You can manually change the constants declared in the script to adapt to different saving locations and categories.
 
 To break custom objects, feel free to use [our modified Breaking Good code](https://github.com/kevintsq/fracture-modes).
 
 ### 🎯 **Evaluation**
 We provide the evaluation script in `scripts/eval.sh`, which looks like this:
+
 ```bash
 EXPERIMENT_NAME="everyday_vol_one_step_init"
 DATA_ROOT="../breaking_bad_vol.hdf5"
@@ -160,16 +161,18 @@ HYDRA_FULL_ERROR=1 python eval.py \
     ++data.random_anchor=false \
     ++model.inference_config.one_step_init=true
 ```
+
 If you want to evaluation on our diffusion variant, you can simply change the `experiment` to `denoiser_diffusion`.
 
 After running the script, the evaluation results will be stored in `logs/GARF/everyday_vol_one_step_init/`. In this folder, you could refer to `metrics.csv` for the evaluation results, and there's a `json_results` folder which contains the reassembly results for all test samples. 
 
 **Currently, if you run the evaluation using multi-gpu, the `json_results` maybe incomplete, so we recommend using single gpu for evaluation.** We will fix this issue in the future.
 
-
 ### 🎮 **Training**
 The training process is quite similar to the evaluation process. While you could directly run the training script provided below, we recommend getting familiar with our [project structure and config system](#project-structure-and-config-system) first.
+
 #### ⭐ **Stage 1: Fracture-aware Pretraining**
+
 ```bash
 NUM_NODES=4
 DATA_ROOT="../breaking_bad_vol.hdf5"
@@ -183,8 +186,10 @@ python train.py \
     data.data_root=$DATA_ROOT \
     ckpt_path=$CHECKPOINT_PATH # to resume training
 ```
+
 #### ⭐ **Stage 2: Flow-Matching Training**
 The difference here is that we will use the pretrained feature extractor to initialize the model, and we have to change the experiment into our flow-matching training.
+
 ```bash
 NUM_NODES=4
 DATA_ROOT="../breaking_bad_vol.hdf5"
@@ -200,8 +205,10 @@ python train.py \
     model.feature_extractor_ckpt=$FEATURE_EXTRACTOR_CKPT \
     ckpt_path=$CHECKPOINT_PATH # to resume training
 ```
+
 #### ⭐ **(Optional) Stage 3: LoRA-Based Fine-Tuning**
 To start fine-tuning, the very first thing you need to do is to prepare your own dataset. The dataset should be in the same format as the Breaking Bad dataset, and you can use our provided script to convert it into hdf5 format. Then, you can run the following example script to start fine-tuning.
+
 ```bash
 python train.py \
     experiment=finetune \
@@ -218,7 +225,6 @@ python train.py \
     finetuning=true
 ```
 
-
 ## 📂 Project Structure and Config System
 
 ```bash
@@ -234,6 +240,7 @@ python train.py \
 ├── train.py             # Training script
 └── vis.py               # Visualization script
 ```
+
 All the configuration files are stored in the `configs` folder. The config system is based on [Hydra](https://hydra.cc/docs/intro/), which allows you to easily modify the configurations by changing the YAML files. You can also override the configurations by passing command line arguments when running the script. We hugely utilize the config system for the initialization of all the modules. You could refer to `configs/models` to see the configuration files for different models. The `configs/experiments` folder serves as a global override configuration for the training and evaluation scripts.
 
 ### 🎮 **Visualization**
@@ -265,8 +272,6 @@ After running the evaluation, per sample transformations will be saved in `logs/
   </tr>
 </table>
 
-
-
 ## ✅ Evaluation Performance
 | Dataset | Subset | Model | RMSE(R) ↓ | RMSE(T) ↓ | Part Accuracy ↑ |
 | ------- | ------ | ----- | --------- | --------- | ---------------- |
@@ -278,30 +283,22 @@ After running the evaluation, per sample transformations will be saved in `logs/
 ## 🙋 FAQs
 For frequently asked questions, please refer to our [GitHub Issues](https://github.com/ai4ce/GARF/issues) page. You can search existing issues or create a new one if you don't find an answer to your question.
 
-## Citation
+## 📚 Citation
 If you find this project useful, please consider citing our paper:
+
 ```bibtex
-@article{Li2025GARF,
+@inproceedings{li2025garf,
  title={GARF: Learning Generalizable 3D Reassembly for Real-World Fractures},
- author={Sihang Li and Zeyu Jiang and Grace Chen and Chenyang Xu and Siqi Tan and Xue Wang and Irving Fang and Kristof Zyskowski and Shannon McPherron and Radu Iovita and Chen Feng and Jing Zhang},
+ author={Li, Sihang and Jiang, Zeyu and Chen, Grace and Xu, Chenyang and Tan, Siqi and Wang, Xue and Fang, Irving and Zyskowski, Kristof and McPherron, Shannon P and Iovita, Radu and Feng, Chen and Zhang, Jing},
  year={2025},
- journal={arXiv preprint arXiv:2504.05400},
+ booktitle={International Conference on Computer Vision (ICCV)}
 }
 ```
 
 Our codebase and method implementation are based on the excellent work by [PuzzleFusion++](https://github.com/eric-zqwang/puzzlefusion-plusplus) and [PointTransformerV3](https://github.com/Pointcept/PointTransformerV3), which provided valuable foundations and insights.
 
-## License
+## 📝 License
 This project is licensed under the GPL License. See the [LICENSE](LICENSE) file for details.
 
-## Acknowledgement
- We gratefully acknowledge the Physical Anthropology Unit, Universidad Complutense de Madrid for providing access to the human skeletons under their curation. This work was supported in part through NSF grants 2152565, 2238968, 2322242, and 2426993, and the NYU IT High Performance Computing resources, services, and staff expertise. 
-
-```bibtex
-@article{li2025garf,
- title={GARF: Learning Generalizable 3D Reassembly for Real-World Fractures},
- author={Li, Sihang and Jiang, Zeyu and Chen, Grace and Xu, Chenyang and Tan, Siqi and Wang, Xue and Fang, Irving and Zyskowski, Kristof and McPherron, Shannon P and Iovita, Radu and Feng, Chen and Zhang, Jing},
- year={2025},
- journal={arXiv preprint arXiv:2504.05400},
-}
-```
+## 🙏 Acknowledgement
+We gratefully acknowledge the Physical Anthropology Unit, Universidad Complutense de Madrid for providing access to the human skeletons under their curation. This work was supported in part through NSF grants 2152565, 2238968, 2322242, and 2426993, and the NYU IT High Performance Computing resources, services, and staff expertise. 
