@@ -1,7 +1,9 @@
 <p align="center">
   <h1 align="center"> <img src="assets/cat.png" alt="Cambrian" width="23" height="auto"> GARF: Learning Generalizable 3D Reassembly </br> for Real-World Fractures </h1>
   <p align="center">
-    <span style="font-size: 28px; font-weight: bold;">🏝️ ICCV 2025</span>
+    <a href="https://iccv.thecvf.com/" target="_blank" rel="noopener noreferrer">
+      <span style="font-size: 70px; font-weight: bold;">🏝️ ICCV 2025</span>
+    </a>
   </p>
   <p align="center">
     <img src="assets/GARF.gif" alt="GARF Demo" width="100%" autoplay loop />
