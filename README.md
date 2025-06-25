@@ -1,6 +1,11 @@
 <p align="center">
   <h1 align="center"> <img src="assets/cat.png" alt="Cambrian" width="23" height="auto"> GARF: Learning Generalizable 3D Reassembly </br> for Real-World Fractures </h1>
   <p align="center">
+    <a href="https://iccv.thecvf.com/" target="_blank" style="color:#1E90FF; text-decoration:none; font-weight:bold; font-size:22px;">
+      🏝️ ICCV 2025
+    </a>
+  </p>  
+  <p align="center">
     <img src="assets/GARF.gif" alt="GARF Demo" width="100%" autoplay loop />
   </p>
 
@@ -49,6 +54,7 @@
 
 
 ## 🔊 News 
+- `2025/06/25`: GARF has been accepted to ICCV2025. Looking forward to seeing you in Hawaii🌺! 
 - `2025/03/25`: We release the <a href="https://ai4ce.github.io/GARF/" target="_blank">GARF</a>, which achieves state-of-the-art performance across a diverse range of synthetic and real-world benchmarks. Try our <a href="https://garf-demo.pages.dev/" target="_blank">demo</a> on your own data! 
 
 ## 📖 Table of Contents
