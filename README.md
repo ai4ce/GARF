@@ -1,10 +1,8 @@
 <p align="center">
   <h1 align="center"> <img src="assets/cat.png" alt="Cambrian" width="23" height="auto"> GARF: Learning Generalizable 3D Reassembly </br> for Real-World Fractures </h1>
   <p align="center">
-    <a href="https://iccv.thecvf.com/" target="_blank" style="color:#1E90FF; text-decoration:none; font-weight:bold; font-size:30px;">
-      <b>🏝️ ICCV 2025</b>
-    </a>
-  </p>
+    <span style="font-size: 24px; font-weight: bold; color: #4b96dc;">🏝️ ICCV 2025</span>
+
   </p>  
   <p align="center">
     <img src="assets/GARF.gif" alt="GARF Demo" width="100%" autoplay loop />
@@ -15,6 +13,9 @@
   </p>
   <p align="center">
     <a href="https://ai4ce.github.io/GARF/static/GARF.pdf" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Paper-GARF" alt="Paper PDF"></a>
+    <a href="https://iccv.thecvf.com/" target="_blank">
+      <img src="https://img.shields.io/badge/ICCV-2025-4b96dc" alt="ICCV 2025">
+    </a>
     <a href="https://arxiv.org/abs/2504.05400" target="_blank"><img src="https://img.shields.io/badge/arXiv-2504.05400-b31b1b" alt="arXiv"></a>
     <a href="https://ai4ce.github.io/GARF" target="_blank"><img src="https://img.shields.io/badge/Project_Page-green" alt="Project Page"></a>
     <a href='https://garf-demo.pages.dev' target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/GARF-demo-demo?color=%23fa8c16"></a>
