@@ -44,7 +44,7 @@
     ·
     <a href="https://scholar.google.com/citations?hl=en&user=YeG8ZM0AAAAJ">Chen Feng✉</a>
     ·
-    <a href="https://github.com/jingz6676">Jing Zhang✉</a>
+    <a href="[https://github.com/jingz6676](https://jingz6676.github.io/)">Jing Zhang✉</a>
   </p>
   <p align="center">
     *, † Equal contribution ✉ Corresponding author
