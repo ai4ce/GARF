@@ -56,6 +56,7 @@
   <div align="center"></div>
 
 ## 🔊 News 
+- `2025/07/28`: We have released the Bone Category for our Fractura Dataset, please refer to the <a href="https://drive.google.com/drive/folders/1x_7L30s5Qs_Ggg9J33o7E6_jOmlUd9TF" target="_blank">Google drive</a> for more details. Stay tuned for the other categories in the near future!
 - `2025/06/25`: GARF has been accepted to ICCV2025. Looking forward to seeing you in Hawaii🌺! 
 - `2025/03/25`: We release the <a href="https://ai4ce.github.io/GARF/" target="_blank">GARF</a>, which achieves state-of-the-art performance across a diverse range of synthetic and real-world benchmarks. Try our <a href="https://garf-demo.pages.dev/" target="_blank">demo</a> on your own data! 
 
