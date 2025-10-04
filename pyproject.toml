@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["JDScript"]
 description = "GARF"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "gradio>=5.21.0",
     "h5py>=3.13.0",
@@ -12,33 +12,29 @@ dependencies = [
     "lightning>=2.5.0.post0",
     "setuptools>=76.0.0",
     "scipy>=1.15.2",
-    "torch==2.5.1",
+    "torch==2.8.0",
     "torch-geometric>=2.6.1",
-    "torchvision>=0.20.1",
+    "torchvision>=0.23.0",
     "trimesh>=4.6.4",
     "diffusers[torch]>=0.32.2",
-    "torch-scatter==2.1.2+pt25cu124",
     "peft>=0.14.0",
     "addict>=2.4.0",
-    "spconv-cu120>=2.3.6",
+    "spconv-cu126>=2.3.6",
     "timm>=1.0.15",
 ]
 
 [project.optional-dependencies]
-post = ["flash-attn", "pytorch3d", "torch-scatter"]
+post = ["flash-attn", "pytorch3d", "torch-scatter==2.1.2+pt28cu128"]
 
 [tool.uv]
 environments = ["sys_platform == 'linux'"]
 no-build-isolation-package = ["flash-attn", "pytorch3d", "torch-scatter"]
-find-links = ["https://data.pyg.org/whl/torch-2.5.0+cu124.html"]
+find-links = ["https://data.pyg.org/whl/torch-2.8.0+cu128.html"]
 
 [tool.uv.sources]
+garf = { workspace = true }
 pytorch3d = { git = "https://github.com/facebookresearch/pytorch3d", tag = "V0.7.8" }
-
-[[tool.uv.dependency-metadata]]
-name = "flash-attn"
-version = "2.7.4.post1"
-requires-dist = ["torch", "einops"]
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp313-cp313-linux_x86_64.whl" }
 
 [[tool.uv.dependency-metadata]]
 name = "pytorch3d"
@@ -47,5 +43,8 @@ requires-dist = ["torch", "setuptools"]
 
 [[tool.uv.dependency-metadata]]
 name = "torch-scatter"
-url = "2.1.2+pt25cu124"
 requires-dist = ["torch", "setuptools"]
+
+[tool.pytest.ini_options]
+markers = ["manual: should be run manually."]
+testpaths = ["garf"]
