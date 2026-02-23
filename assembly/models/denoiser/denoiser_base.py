@@ -590,7 +590,7 @@ class DenoiserBase(L.LightningModule):
                     pred_tf = pred_trans_rots[global_idx]
                     gt_mat = self.se3_to_matrix(gt_tf)
                     pred_mat = self.se3_to_matrix(pred_tf)
-                    T_final = pred_mat @ torch.linalg.inv(gt_mat)
+                    T_final = pred_mat.cpu() @ torch.linalg.inv(gt_mat.cpu())
                     scene_pred.add_geometry(
                         part_mesh.copy(), transform=T_final.cpu().numpy()
                     )
