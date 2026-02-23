@@ -152,5 +152,5 @@ class BreakingBadDataModule(L.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers
+            self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=BreakingBadWeighted.collate_fn
         )

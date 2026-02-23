@@ -6,12 +6,14 @@ https://github.com/eric-zqwang/puzzlefusion-plusplus
 import os
 import json
 from functools import partial
+from pathlib import Path
 from typing import Optional, Tuple
 
 import lightning as L
 import torch
 import torch.nn as nn
 import pytorch3d.transforms as transforms
+import trimesh
 from scipy.spatial.transform import Rotation as R
 from peft import (
     LoraConfig,
@@ -105,6 +107,23 @@ class DenoiserBase(L.LightningModule):
         points = self.feature_extractor(data_dict)["point"]
         points["batch"] = points["batch"].clone()
         return points
+
+    @staticmethod
+    def se3_to_matrix(transform: torch.Tensor) -> torch.Tensor:
+        """Convert SE(3) 7D vector [t, quat] to a 4x4 matrix."""
+        if transform.ndim == 1:
+            transform = transform.unsqueeze(0)
+
+        trans = transform[..., :3].to(dtype=torch.float32)
+        quat = transform[..., 3:].to(dtype=torch.float32)
+        rot_mat = transforms.quaternion_to_matrix(quat)
+
+        batch_shape = rot_mat.shape[:-2]
+        eye = torch.eye(4, device=transform.device, dtype=rot_mat.dtype)
+        eye = eye.expand(*batch_shape, 4, 4).clone()
+        eye[..., :3, :3] = rot_mat
+        eye[..., :3, 3] = trans
+        return eye.squeeze(0)
 
     def log_metrics(
         self,
@@ -546,6 +565,77 @@ class DenoiserBase(L.LightningModule):
                         "w",
                     ),
                 )
+
+        # save mesh results for visualization
+        if self.inference_config.get("save_assembly", True) and "meshes" in data_dict:
+            save_root = (
+                Path(self.trainer.log_dir or self.trainer.default_root_dir or "./")
+                / "assembly_results"
+            )
+            save_root.mkdir(parents=True, exist_ok=True)
+
+            pred_trans_rots = torch.cat([pred_trans, pred_rots], dim=-1)
+
+            for b in range(B):
+                obj_dir = save_root / str(data_dict["name"][b])
+                obj_dir.mkdir(parents=True, exist_ok=True)
+
+                start = num_parts_cum[b].item()
+                end = num_parts_cum[b + 1].item()
+
+                scene_pred = trimesh.Scene()
+                for part_idx, part_mesh in enumerate(data_dict["meshes"][b]):
+                    global_idx = start + part_idx
+                    gt_tf = gt_trans_and_rots[global_idx]
+                    pred_tf = pred_trans_rots[global_idx]
+                    gt_mat = self.se3_to_matrix(gt_tf)
+                    pred_mat = self.se3_to_matrix(pred_tf)
+                    T_final = pred_mat @ torch.linalg.inv(gt_mat)
+                    scene_pred.add_geometry(
+                        part_mesh.copy(), transform=T_final.cpu().numpy()
+                    )
+                scene_pred.export(obj_dir / "view_assembly_0.glb")
+
+                scene_gt = trimesh.Scene()
+                for part_mesh in data_dict["meshes"][b]:
+                    scene_gt.add_geometry(part_mesh)
+                scene_gt.export(obj_dir / "view_gt.glb")
+
+                removal_pieces = (
+                    data_dict["removal_pieces"][b]
+                    if "removal_pieces" in data_dict
+                    else ""
+                )
+                redundant_pieces = (
+                    data_dict["redundant_pieces"][b]
+                    if "redundant_pieces" in data_dict
+                    else ""
+                )
+                pieces = (
+                    data_dict["pieces"][b] if "pieces" in data_dict else ""
+                )
+
+                assembly_json = {
+                    "part_acc": acc[b].detach().item(),
+                    "rmse_t": rmse_t[b].detach().item(),
+                    "rmse_r": rmse_r[b].detach().item(),
+                    "shape_cd": shape_cd[b].detach().item(),
+                    "num_parts": int(data_dict["num_parts"][b].item()),
+                    "gt_transform": gt_trans_and_rots[start:end]
+                    .detach()
+                    .cpu()
+                    .tolist(),
+                    "pred_transform": pred_trans_rots[start:end]
+                    .detach()
+                    .cpu()
+                    .tolist(),
+                    "removal_pieces": removal_pieces,
+                    "redundant_pieces": redundant_pieces,
+                    "pieces": pieces,
+                    "mesh_scale": data_dict["mesh_scale"][b].detach().item(),
+                }
+                with (obj_dir / "view_assembly_0.json").open("w") as f:
+                    json.dump(assembly_json, f, indent=2)
 
     def on_test_epoch_end(self):
         return self.on_validation_epoch_end()

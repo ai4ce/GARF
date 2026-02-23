@@ -4,7 +4,7 @@ import trimesh
 import logging
 import h5py
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, default_collate
 
 COLORS = [
     [254, 138, 24],
@@ -61,9 +61,9 @@ class BreakingBadBase(Dataset):
         print("Using mesh sample strategy:", self.mesh_sample_strategy)
         trimesh.util.log.setLevel(logging.ERROR)
         # Cannot enable removal and redundancy at the same time
-        assert not (
-            self.num_removal and self.num_redundancy
-        ), "Cannot enable removal and redundancy at the same time"
+        assert not (self.num_removal and self.num_redundancy), (
+            "Cannot enable removal and redundancy at the same time"
+        )
 
     def get_data_list(self) -> List[str]:
         """Return the list of data samples."""
@@ -164,9 +164,9 @@ class BreakingBadBase(Dataset):
         # Redundancy to simulate extra part
         redundant_pieces = []
         if self.num_redundancy > 0:
-            assert (
-                num_parts > self.num_redundancy
-            ), "num of parts should greater than num of redundancy"
+            assert num_parts > self.num_redundancy, (
+                "num of parts should greater than num of redundancy"
+            )
             redundant_pieces = h5_file[name]["redundant_pieces"][: self.num_redundancy]
             redundant_pieces = [
                 f"{p[0].decode('utf-8')}/pieces/{p[1].decode('utf-8')}"
@@ -211,7 +211,12 @@ class BreakingBadBase(Dataset):
             "redundant_pieces": ",".join(redundant_pieces),
             "pieces": ",".join(pieces_names),
             "mesh_scale": meshes_max_scale,
+            "meshes": meshes,
         }
+
+        # For training, pickle the meshes will take too much spaces and time and is not needed.
+        if self.split == "train":
+            del data["meshes"]
 
         return data
 
@@ -309,3 +314,14 @@ class BreakingBadBase(Dataset):
             group.create_dataset("graph", data=graph)
 
         f.close()
+
+    @staticmethod
+    def collate_fn(batch):
+        collated_batch = {}
+        for key in batch[0].keys():
+            if key == "meshes":
+                collated_batch[key] = [item[key] for item in batch]
+            else:
+                collated_batch[key] = default_collate([item[key] for item in batch])
+
+        return collated_batch

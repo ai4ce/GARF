@@ -1,13 +1,13 @@
-from typing import List
+from typing import List, Any
 
 import hydra
 import lightning as L
 from lightning.pytorch.loggers import Logger
 from lightning.pytorch.callbacks import Timer
-from omegaconf import DictConfig, OmegaConf
-
+from omegaconf import DictConfig, OmegaConf, ListConfig, base
+import torch
+from collections import defaultdict
 OmegaConf.register_new_resolver("getIndex", lambda lst, idx: lst[idx])
-
 
 @hydra.main(version_base="1.3", config_path="./configs", config_name="eval")
 def main(cfg: DictConfig):
@@ -40,7 +40,7 @@ def main(cfg: DictConfig):
         cfg.get("trainer"), callbacks=callbacks, logger=loggers
     )
 
-    trainer.test(model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"))
+    trainer.test(model, datamodule=datamodule, ckpt_path=cfg.get("ckpt_path"), weights_only=False)
 
     print("Time taken: ", timer.time_elapsed("test"))
 

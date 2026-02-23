@@ -82,11 +82,11 @@ class BreakingBadWeighted(BreakingBadBase):
         pointclouds_normals_gt = np.concatenate(pointclouds_normals_gt)  # (N, 3)
         fracture_surface_gt = np.concatenate(fracture_surface_gt)  # (N,)
 
-        # Init Pose
-        pointclouds_gt, pointclouds_normals_gt, init_rot = rotate_pc(
-            pointclouds_gt,
-            pointclouds_normals_gt,
-        )
+        # # Init Pose
+        # pointclouds_gt, pointclouds_normals_gt, init_rot = rotate_pc(
+        #     pointclouds_gt,
+        #     pointclouds_normals_gt,
+        # )
 
         pointclouds, pointclouds_normals, quaternions, translations = [], [], [], []
         scale = []
@@ -175,13 +175,14 @@ class BreakingBadWeighted(BreakingBadBase):
             "graph": graph,
             "scale": scale[:, np.newaxis],
             "ref_part": ref_part,
-            "init_rot": init_rot,
+            # "init_rot": init_rot,
             "removal": self.num_removal,
             "redundancy": self.num_redundancy,
             "removal_pieces": data["removal_pieces"],
             "redundant_pieces": data["redundant_pieces"],
             "pieces": data["pieces"],
             "mesh_scale": data["mesh_scale"],
+            "meshes": data["meshes"],
         }
 
 if __name__ == "__main__":
