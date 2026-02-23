@@ -13,6 +13,7 @@ denoiser:
   dropout_rate: 0.2
   trans_out_dim: 3
   rot_out_dim: 3
+  use_flash_attn: False
 noise_scheduler:
   _target_: assembly.models.denoiser.SE3FlowMatchEulerDiscreteScheduler
   num_train_timesteps: 1000

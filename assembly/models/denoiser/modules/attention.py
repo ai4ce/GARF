@@ -153,90 +153,6 @@ class EncoderLayer(nn.Module):
         # 2. global attention
         norm_hidden_states = self.norm2(hidden_states, timestep, batch)
 
-        # attn_bias = graph_mask  # (B, global_attn_max_seqlen, global_attn_max_seqlen)
-        # # Ensure attention_bias is a slice multiple of 8
-        # nearest_8_multiple = ((global_attn_max_seqlen + 7) // 8) * 8
-        # attn_bias_padded = torch.zeros(
-        #     (attn_bias.shape[0], nearest_8_multiple, nearest_8_multiple),
-        #     device=attn_bias.device,
-        # ).half()
-        # attn_bias_padded[:, :global_attn_max_seqlen, :global_attn_max_seqlen] = (
-        #     attn_bias
-        # )
-        # attn_bias_padded = attn_bias_padded.unsqueeze(1).expand(
-        #     -1, self.num_attention_heads, -1, -1
-        # )
-
-        # global_qkv = (
-        #     self.global_attn_to_qkv(norm_hidden_states)
-        #     .reshape(n_points, 3, self.num_attention_heads * self.attention_head_dim)
-        #     .unbind(1)
-        # )  # tuple of 3 tensors: (n_points, num_heads, head_dim)
-        # q_padded, global_valid_mask = self.pad_sequence(
-        #     global_qkv[0], global_attn_seqlens, global_attn_max_seqlen
-        # )
-        # k_padded, _ = self.pad_sequence(
-        #     global_qkv[1], global_attn_seqlens, global_attn_max_seqlen
-        # )
-        # v_padded, _ = self.pad_sequence(
-        #     global_qkv[2], global_attn_seqlens, global_attn_max_seqlen
-        # )
-
-        # global_out = xformers.ops.memory_efficient_attention(
-        # query=q_padded.view(
-        #     -1,
-        #     global_attn_max_seqlen,
-        #     self.num_attention_heads,
-        #     self.attention_head_dim,
-        # ),
-        # key=k_padded.view(
-        #     -1,
-        #     global_attn_max_seqlen,
-        #     self.num_attention_heads,
-        #     self.attention_head_dim,
-        # ),
-        # value=v_padded.view(
-        #     -1,
-        #     global_attn_max_seqlen,
-        #     self.num_attention_heads,
-        #     self.attention_head_dim,
-        # ),
-        #     attn_bias=attn_bias_padded[
-        #         :, :, :global_attn_max_seqlen, :global_attn_max_seqlen
-        #     ],
-        # )  # (B, max_seqlen, num_heads, head_dim)
-
-        # global_out = torch.nn.functional.scaled_dot_product_attention(
-        #     query=q_padded.view(
-        #         -1,
-        #         global_attn_max_seqlen,
-        #         self.num_attention_heads,
-        #         self.attention_head_dim,
-        #     ).permute(0, 2, 1, 3),
-        #     key=k_padded.view(
-        #         -1,
-        #         global_attn_max_seqlen,
-        #         self.num_attention_heads,
-        #         self.attention_head_dim,
-        #     ).permute(0, 2, 1, 3),
-        #     value=v_padded.view(
-        #         -1,
-        #         global_attn_max_seqlen,
-        #         self.num_attention_heads,
-        #         self.attention_head_dim,
-        #     ).permute(0, 2, 1, 3),
-        #     attn_mask=attn_bias_padded[
-        #         :, :, :global_attn_max_seqlen, :global_attn_max_seqlen
-        #     ],
-        # ).permute(0, 2, 1, 3)
-        # global_out = global_out.view(
-        #     -1, global_attn_max_seqlen, embed_dim
-        # )  # (B, max_seqlen, embed_dim)
-        # # unpad global_out
-        # global_out = global_out[global_valid_mask]
-        # global_out = self.global_attn_to_out(global_out)
-        # hidden_states = hidden_states + global_out
-
         global_out_flash = flash_attn.flash_attn_varlen_qkvpacked_func(
             qkv=self.global_attn_to_qkv(norm_hidden_states).reshape(
                 n_points, 3, self.num_attention_heads, self.attention_head_dim
@@ -254,3 +170,58 @@ class EncoderLayer(nn.Module):
         hidden_states = ff_output + hidden_states
 
         return hidden_states  # (n_points, embed_dim)
+
+    def forward_sdpa(
+        self,
+        hidden_states: torch.Tensor,    # (B, S, D) pre-padded
+        timestep: torch.Tensor,         # (valid_P,)
+        batch: torch.Tensor,            # (B, S) padded part indices
+        self_attn_mask: torch.Tensor,   # (B, 1, S, S) bool mask
+        global_attn_mask: torch.Tensor, # (B, 1, S, S) bool mask
+        coarse_seg_pred: Optional[torch.Tensor] = None,  # (B, S) padded, or None
+    ):
+        B, S, D = hidden_states.shape
+
+        # 1. self attention
+        norm_hidden_states = self.norm1(hidden_states, timestep, batch)
+
+        qkv = self.self_attn_to_qkv(norm_hidden_states).reshape(
+            B, S, 3, self.num_attention_heads, self.attention_head_dim
+        )
+        q, k, v = qkv.unbind(dim=2)  # each (B, S, H, Dh)
+        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
+
+        attn_output = torch.nn.functional.scaled_dot_product_attention(
+            q, k, v, attn_mask=self_attn_mask
+        )  # (B, H, S, Dh)
+        attn_output = attn_output.transpose(1, 2).reshape(B, S, D)
+
+        attn_output = self.self_attn_to_out(attn_output)
+        hidden_states = hidden_states + attn_output
+
+        if coarse_seg_pred is not None:
+            hidden_states = hidden_states * (1 + coarse_seg_pred.unsqueeze(-1))
+
+        # 2. global attention
+        norm_hidden_states = self.norm2(hidden_states, timestep, batch)
+
+        qkv = self.global_attn_to_qkv(norm_hidden_states).reshape(
+            B, S, 3, self.num_attention_heads, self.attention_head_dim
+        )
+        q, k, v = qkv.unbind(dim=2)
+        q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
+
+        global_out = torch.nn.functional.scaled_dot_product_attention(
+            q, k, v, attn_mask=global_attn_mask
+        )
+        global_out = global_out.transpose(1, 2).reshape(B, S, D)
+
+        global_out = self.global_attn_to_out(global_out)
+        hidden_states = hidden_states + global_out
+
+        # 3. feed forward
+        norm_hidden_states = self.norm3(hidden_states)
+        ff_output = self.ff(norm_hidden_states)
+        hidden_states = ff_output + hidden_states
+
+        return hidden_states  # (B, S, D)

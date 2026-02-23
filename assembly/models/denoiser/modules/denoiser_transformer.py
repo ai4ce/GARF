@@ -25,6 +25,7 @@ class DenoiserTransformer(nn.Module):
         dropout_rate: float,
         trans_out_dim: int,
         rot_out_dim: int,
+        use_flash_attn: bool = True,
     ):
         super().__init__()
 
@@ -36,7 +37,7 @@ class DenoiserTransformer(nn.Module):
         self.dropout_rate = dropout_rate
         self.trans_out_dim = trans_out_dim
         self.rot_out_dim = rot_out_dim
-
+        self.use_flash_attn = use_flash_attn
         self.ref_part_emb = nn.Embedding(2, self.embed_dim)
         self.activation = nn.SiLU()
 
@@ -310,6 +311,8 @@ class DenoiserTransformer(nn.Module):
         scale,  # (valid_P, 1)
         ref_part,  # (valid_P,)
     ):
+        if not self.use_flash_attn:
+            return self.forward_sdpa(x, timesteps, latent, part_valids, scale, ref_part)
 
         # (valid_P, embed_dim), (n_points, embed_dim)
         x_emb, shape_emb = self._gen_cond(x, latent, scale)
@@ -320,11 +323,6 @@ class DenoiserTransformer(nn.Module):
 
         # (n_points, embed_dim)
         data_emb = x_emb + shape_emb
-        # data_emb = self.pos_encoding(
-        #     x=data_emb,
-        #     part_valids=part_valids,
-        #     batch=latent["batch"],
-        # )
 
         # self_mask, gen_mask = self._gen_mask(B, N, L, part_valids)
         self_attn_seqlen = torch.bincount(latent["batch"])  # (valid_P,)
@@ -340,12 +338,6 @@ class DenoiserTransformer(nn.Module):
         global_attn_cu_seqlens = nn.functional.pad(
             torch.cumsum(global_attn_seqlen, 0), (1, 0)
         ).to(torch.int32)
-
-        # graph_mask, valid_mask = self.calc_graph_mask(
-        #     graph=graph,
-        #     points_per_part=points_per_part,
-        #     max_seq_len=global_attn_max_seqlen,
-        # )
 
         for i, layer in enumerate(self.transformer_layers):
             data_emb = layer(
@@ -369,9 +361,90 @@ class DenoiserTransformer(nn.Module):
 
         # data_emb (B, N*L, C)
         out_trans_rots = self._out(data_emb)
-        # out_graph = self._out_graph(data_emb, part_valids)
 
         return {
             "pred": out_trans_rots,  # (valid_P, 7)
-            "graph_pred": None,  # out_graph,
+            "graph_pred": None,
+        }
+
+    def forward_sdpa(
+        self,
+        x,  # (valid_P, 7)
+        timesteps,  # (valid_P,)
+        latent,  # PointTransformer Point instance
+        part_valids,  # (B, P)
+        scale,  # (valid_P, 1)
+        ref_part,  # (valid_P,)
+    ):
+        # (valid_P, embed_dim), (n_points, embed_dim)
+        x_emb, shape_emb = self._gen_cond(x, latent, scale)
+        x_emb = self._add_ref_part_emb(x_emb, ref_part)
+        x_emb = x_emb[latent["batch"]]
+        data_emb = x_emb + shape_emb  # (n_points, embed_dim)
+
+        batch_idx = latent["batch"]  # (n_points,) flat part index
+        device = data_emb.device
+
+        # --- sequence lengths ---
+        self_attn_seqlen = torch.bincount(batch_idx)  # (valid_P,)
+        self_attn_cu_seqlens = nn.functional.pad(
+            torch.cumsum(self_attn_seqlen, 0), (1, 0)
+        ).to(torch.int32)
+
+        points_per_part = torch.zeros_like(part_valids, dtype=self_attn_seqlen.dtype)
+        points_per_part[part_valids] = self_attn_seqlen
+        global_attn_seqlen = points_per_part.sum(1)  # (B,)
+        global_max_seqlen = global_attn_seqlen.max().item()
+        B = part_valids.shape[0]
+
+        # --- pad once: (n_points, D) -> (B, S, D) ---
+        seq_ranges = torch.arange(global_max_seqlen, device=device).unsqueeze(0).expand(B, -1)
+        valid_mask = seq_ranges < global_attn_seqlen.unsqueeze(1)  # (B, S)
+
+        padded_data = torch.zeros(
+            (B, global_max_seqlen, self.embed_dim), device=device, dtype=data_emb.dtype
+        )
+        padded_data[valid_mask] = data_emb
+
+        # pad batch (part indices) — fill 0 for padding (safe: masked out in attention)
+        padded_batch = torch.zeros(
+            (B, global_max_seqlen), device=device, dtype=torch.long
+        )
+        padded_batch[valid_mask] = batch_idx
+
+        # --- build masks (once, reused by all layers) ---
+        # self-attention: block-diagonal per part (same part index -> attend)
+        # part indices are globally unique, so equality correctly groups same-part points
+        self_attn_mask = (padded_batch.unsqueeze(2) == padded_batch.unsqueeze(1))  # (B, S, S)
+        self_attn_mask = self_attn_mask & valid_mask.unsqueeze(1) & valid_mask.unsqueeze(2)
+        self_attn_mask = self_attn_mask.unsqueeze(1)  # (B, 1, S, S) broadcast over heads
+
+        # global attention: all valid positions in same batch item attend to each other
+        global_attn_mask = (valid_mask.unsqueeze(1) & valid_mask.unsqueeze(2)).unsqueeze(1)
+
+        # --- transformer loop (all in padded format) ---
+        for layer in self.transformer_layers:
+            padded_data = layer.forward_sdpa(
+                hidden_states=padded_data,
+                timestep=timesteps,
+                batch=padded_batch,
+                self_attn_mask=self_attn_mask,
+                global_attn_mask=global_attn_mask,
+            )
+
+        # --- unpad once: (B, S, D) -> (n_points, D) ---
+        data_emb = padded_data[valid_mask]
+
+        # scatter to each part (mean pool)
+        data_emb = torch_scatter.segment_csr(
+            data_emb,
+            self_attn_cu_seqlens.long(),
+            reduce="mean",
+        )  # (valid_P, embed_dim)
+
+        out_trans_rots = self._out(data_emb)
+
+        return {
+            "pred": out_trans_rots,  # (valid_P, 7)
+            "graph_pred": None,
         }
