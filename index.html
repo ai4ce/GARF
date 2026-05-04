@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="Unleashing the Power of Data Synthesis in Visual Localization">
-  <meta name="keywords" content="Visual Localization, 3D Gaussian, Data Synthesis, Adversarial Training">
+        content="Learning Generalizable 3D Reassembly for Real-World Fractures">
+  <meta name="keywords" content="3D Assembly, Flow Matching, Large-Scale Pretraining, LoRA Fine-tuning">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GARF</title>
   <link rel="icon"
@@ -119,9 +119,7 @@
             <img src="./static/images/GARF.png" alt="cat" style="height: 10.0rem;">
           </h1>
           <h1 class="title is-2 publication-title">Learning Generalizable 3D Reassembly<br>for Real-World Fractures</h1>
-          <div class="column is-full_width">
-            <h2 class="title is-4"><a href="hhttps://iccv.thecvf.com/">ICCV 2025</a></h2>
-          </div>
+          <h2 class="subtitle is-4 publication-subtitle mt-5">ICCV 2025</h2>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
               <a href="https://Louis-Leee.github.io" target="_blank">Sihang Li<sup>1*</sup></a>,</span>
@@ -157,15 +155,13 @@
               <a href="https://jingz6676.github.io" target="_blank">Jing Zhang<sup>1✉</sup></a></span>
           </div>
 
-          <div class="is-size-5 publication-authors">
+          <div class="publication-authors my-4" style="font-size: 18px">
             <span class="author-block" style="margin-right: 1.5em;"> <sup>1</sup>New York University</span>
             <span class="author-block" style="margin-right: 1.5em;"> <sup>2</sup>Yale University</span>
             <span class="author-block" style="margin-right: 1em;"> <sup>3</sup>Max Planck Institute for Evolutionary Anthropology</span>
-
-            <br>
-            <span class="author-block" style="font-size: large">*, † Equal Contribution, </span>
-            <span class="author-block" style="font-size: large">✉ Corresponding Author</span>
           </div>
+          <span class="author-block" style="font-size: large">*, † Equal Contribution, </span>
+          <span class="author-block" style="font-size: large">✉ Corresponding Author</span>
 
           <div class="column has-text-centered" style="margin-top: 1em;">
             <div class="publication-links">
@@ -220,7 +216,8 @@
               </span>
               <!-- Dataset Link. -->
               <span class="link-block">
-              <a href="https://drive.google.com/drive/folders/1x_7L30s5Qs_Ggg9J33o7E6_jOmlUd9TF?usp=sharing" target="_blank"
+              <a href="https://drive.google.com/drive/folders/1x_7L30s5Qs_Ggg9J33o7E6_jOmlUd9TF?usp=sharing"
+                 target="_blank"
                  class="external-link button is-normal is-rounded is-dark"
                  style="white-space: normal; text-align: center;">
                 <span class="icon">
@@ -265,7 +262,7 @@
         <div class="swiper-button-next"></div>
       </div> -->
 
-      <p class="tldr" style="font-size: 15px">
+      <p class="tldr" style="font-size: 18px">
         GARF is a generalizable flow matching-based 3D reassembly method trained on <b>1.9 Million</b> fractures,
         enabling precise real-world fragment pose alignment. 😊 Achieves strong performance across extensive benchmarks,
         concise code with efficient performance.
@@ -280,8 +277,6 @@
   <div class="container is-max-desktop">
     <div class="columns is-multiline is-mobile has-text-centered">
       <div class="columns is-multiline">
-        <!-- 桌面端：第一行视频，第二行模型 -->
-        <!-- 视频行 -->
         <div class="column is-one-fifth is-hidden-mobile">
           <video playsinline autoplay loop muted style="width: 100%; object-fit: cover; margin-bottom: 2px;">
             <source src="static/videos/fractura/bowl.mp4" type="video/mp4">
@@ -308,7 +303,6 @@
           </video>
         </div>
 
-        <!-- 模型行 -->
         <div class="column is-one-fifth is-hidden-mobile">
           <model-viewer src="static/models/fractura/bowl.glb" camera-controls interaction-prompt="none" auto-rotate
                         shadow-intensity="1" exposure="0.7"
@@ -360,11 +354,8 @@
           </model-viewer>
         </div>
 
-        <!-- 手机端：五行，每行左侧视频，右侧模型 -->
-        <!-- 手机端内容 -->
         <div class="column is-full is-hidden-tablet">
           <div class="columns is-mobile">
-            <!-- 第一个物品 -->
             <div class="column is-half">
               <video playsinline autoplay loop muted style="width: 100%; object-fit: cover;">
                 <source src="static/videos/fractura/bowl.mp4" type="video/mp4">
@@ -385,7 +376,6 @@
 
         <div class="column is-full is-hidden-tablet">
           <div class="columns is-mobile">
-            <!-- 第二个物品 -->
             <div class="column is-half">
               <video playsinline autoplay loop muted style="width: 100%; object-fit: cover;">
                 <source src="static/videos/fractura/plate.mp4" type="video/mp4">
@@ -406,7 +396,6 @@
 
         <div class="column is-full is-hidden-tablet">
           <div class="columns is-mobile">
-            <!-- 第三个物品 -->
             <div class="column is-half">
               <video playsinline autoplay loop muted style="width: 100%; object-fit: cover;">
                 <source src="static/videos/fractura/pot.mp4" type="video/mp4">
@@ -427,7 +416,6 @@
 
         <div class="column is-full is-hidden-tablet">
           <div class="columns is-mobile">
-            <!-- 第四个物品 -->
             <div class="column is-half">
               <video playsinline autoplay loop muted style="width: 100%; object-fit: cover;">
                 <source src="static/videos/fractura/vase1.mp4" type="video/mp4">
@@ -448,7 +436,6 @@
 
         <div class="column is-full is-hidden-tablet">
           <div class="columns is-mobile">
-            <!-- 第五个物品 -->
             <div class="column is-half">
               <video playsinline autoplay loop muted style="width: 100%; object-fit: cover;">
                 <source src="static/videos/fractura/vase2.mp4" type="video/mp4">
