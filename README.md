@@ -13,7 +13,7 @@
   A generalizable flow matching-based 3D reassembly method trained on 1.9 Million fractures, enabling precise real-world fragment pose alignment. 😊Achieves strong performance across extensive benchmarks, concise code with efficient performance.
   </p>
   <p align="center">
-    <a href="https://ai4ce.github.io/GARF/static/GARF.pdf" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Paper-GARF" alt="Paper PDF"></a>
+    <a href="https://openaccess.thecvf.com/content/ICCV2025/html/Li_GARF_Learning_Generalizable_3D_Reassembly_for_Real-World_Fractures_ICCV_2025_paper.html" target="_blank" rel="noopener noreferrer"><img src="https://img.shields.io/badge/Official_Paper-GARF-4b96dc" alt="Official ICCV 2025 paper"></a>
     <a href="https://iccv.thecvf.com/" target="_blank">
       <img src="https://img.shields.io/badge/ICCV-2025-4b96dc" alt="ICCV 2025">
     </a>
@@ -289,10 +289,13 @@ If you find this project useful, please consider citing our paper:
 
 ```bibtex
 @inproceedings{li2025garf,
- title={GARF: Learning Generalizable 3D Reassembly for Real-World Fractures},
- author={Li, Sihang and Jiang, Zeyu and Chen, Grace and Xu, Chenyang and Tan, Siqi and Wang, Xue and Fang, Irving and Zyskowski, Kristof and McPherron, Shannon P and Iovita, Radu and Feng, Chen and Zhang, Jing},
+ title={{GARF}: Learning Generalizable 3{D} Reassembly for Real-World Fractures},
+ author={Li, Sihang and Jiang, Zeyu and Chen, Grace and Xu, Chenyang and Tan, Siqi and Wang, Xue and Fang, Irving and Zyskowski, Kristof and McPherron, Shannon P. and Iovita, Radu and Feng, Chen and Zhang, Jing},
  year={2025},
- booktitle={International Conference on Computer Vision (ICCV)}
+ booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+ pages={5711--5721},
+ doi={10.1109/ICCV51701.2025.00541},
+ url={https://openaccess.thecvf.com/content/ICCV2025/html/Li_GARF_Learning_Generalizable_3D_Reassembly_for_Real-World_Fractures_ICCV_2025_paper.html}
 }
 ```
 
